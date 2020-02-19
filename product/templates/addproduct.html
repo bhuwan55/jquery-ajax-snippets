@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Products</title>
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.4.1.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <h1>All Products</h1>
+    <table id="newly_created_product_appending" style="width: 100%; padding: 15px;text-align: center;border-collapse: collapse;" border="2">
+        <thead>
+          <th>Product Id</th>
+          <th>Price</th> 
+          <th>Stock</th>
+          <th>Name</th>
+          <th>Action</th>
+          <th>Edit</th>
+        </thead>
+
+        <tbody id="table-body">
+        {% for products in products %}
+        <tr >
+            <td class="prod_id">{{products.product_id}}</td>
+            <td class="prod_price">{{products.price}}</td>
+            <td class="stock">{{products.stock}}</td>
+            <td class="product_name">{{products.name}}</td>
+            <td>
+                <button class="delete" value="{{products.product_id}}">Delete me</button>
+            </td>
+            <td>
+                <div class="container">
+                    <!-- Button to Open the Modal -->
+                    <button type="button" class="btn btn-primary edit-product" data-toggle="modal" data-target="#myModal">
+                    Edit
+                    </button>
+                </div>
+            </td>
+          </tr>
+        {% endfor %}</tbody>
+    </table>
+    <br>
+    <h2>Add products</h2>
+    <br>
+    {% csrf_token %}
+    <p><label for="prodId">Product Id</label>
+    <input type="text" name="product_id" id="prodId">
+
+    <label for="prodPrice">Price</label>
+    <input type="number" name="price" id="prodPrice">
+
+    <label for="prodStock">stock</label>
+    <input type="text" name="stock" id="prodStock">
+
+    <label for="prodName">Name</label>
+    <input type="text" name="name" id="prodName">
+
+    <button id="addProduct" type="submit" >Add Product</button> </p>
+
+                        <!-- The Modal -->
+                        <div class="modal" id="myModal">
+                            <div class="modal-dialog">
+                              <div class="modal-content">
+                              
+                                <!-- Modal Header -->
+                                <div class="modal-header">
+                                  <h4 class="modal-title">Edit Products</h4>
+                                  <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                </div>
+                                
+                                <!-- Modal body -->
+                                <div class="modal-body">
+                                  {% csrf_token %}
+                                  <p><label for="">Product Id</label>
+                                  <input type="text" name="product_id" class="pid" readonly><br>
+      
+                                  <label for="">Price</label>
+                                  <input type="text" name="price" class="pprice" ><br>
+      
+                                  <label for="">stock</label>
+                                  <input type="text" name="stock" class="pstock"><br>
+      
+                                  <label for="">Name</label>
+                                  <input type="text" name="name" class="pname" ><br>
+      
+                                  <button id= "editProductSave" >Edit Product</button> </p>
+                                </div>
+                                
+                                <!-- Modal footer -->
+                                <div class="modal-footer">
+                                  <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                                </div>
+                                
+                              </div>
+                            </div>
+                          </div>
+
+</body>
+<script>
+
+    $("#addProduct").click(function(){
+        product_id = $("#prodId").val();
+        price = $("#prodPrice").val();
+        stock =  $("#prodStock").val();
+        name = $("#prodName").val();
+        $.post("{% url 'app:addproduct_url' %}",
+        {
+            "prodId":product_id,
+            "prodPrice":parseFloat(price),
+            "prodStock":stock,
+            "prodName":name,
+            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+        },
+        function(data,status){
+            $("#table-body").append(`
+            <tr>
+                <td class="prod_id">`+product_id+`</td>
+                <td class="prod_price">`+price+`</td>
+                <td class="stock">`+stock+`</td>
+                <td class="product_name">`+name+`</td>
+                <td>
+                    <button class="delete" value="`+product_id+`" > Delete me </button>
+                </td>
+                <td>
+                    <div class="container">
+                        <button type="button" class="btn btn-primary edit-product" data-toggle="modal" data-target="#myModal">
+                            Edit
+                        </button>
+                    </div>
+                </td>
+                
+            </tr>
+        `);
+            alert("Product created");
+
+        });
+
+    });
+
+    $("#table-body").on('click','.delete',function(){
+        $(this).closest('tr').remove();
+        id = $(this).val();
+        $.post("{% url 'app:delete_url' %}",
+        {
+            "id" : id,
+            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+        },
+        function(){
+            alert("Product deleted");
+        });
+    });
+
+    choosed_tr = null;
+    $("#table-body").on('click','.edit-product',function(){
+        product_id = $(this).closest('tr').find('.prod_id').text();
+        price = $(this).closest('tr').find('.prod_price').text();
+        stock = $(this).closest('tr').find('.stock').text();
+        name = $(this).closest('tr').find('.product_name').text();
+        choosed_tr = $(this);
+        $("input[name=product_id]").val(product_id);
+        $("input[name=price]").val(price);
+        $("input[name=stock]").val(stock);
+        $("input[name=name]").val(name);
+    });
+
+    $("#editProductSave").on('click',function(){
+        product_id = $(".pid").val();
+        price = $(".pprice").val();
+        stock = $(".pstock").val();
+        name = $(".pname").val();
+        $.post("{% url 'app:addproduct_url' %}",
+        {
+            "prodId":product_id,
+            "prodPrice":parseFloat(price),
+            "prodStock":stock,
+            "prodName":name,
+            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+        },function(data,status){
+            choosed_tr.closest('tr').find('.prod_price').text(price);
+            choosed_tr.closest('tr').find('.stock').text(stock);
+            choosed_tr.closest('tr').find('.product_name').text(name);
+            alert("Product edited");
+        })
+    });
+
+    
+</script>
+</html>
