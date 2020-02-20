@@ -11,17 +11,8 @@ def addproductView(request):
         prodStock = request.POST['prodStock']
         prodName = request.POST['prodName']
 
-        try:
-            edited= Product.objects.get(product_id = prodId)
-            if edited:
-                edited.product_id = prodId
-                edited.price = prodPrice
-                edited.stock = prodStock
-                edited.name = prodName
-                edited.save()
-        except:
-            product=Product.objects.create(product_id=prodId, price=prodPrice, stock=prodStock, name = prodName)
-            product.save()
+        product=Product.objects.create(product_id=prodId, price=prodPrice, stock=prodStock, name = prodName)
+        product.save()
     products = Product.objects.all()
     return render(request,'addproduct.html',{'products':products})
 
@@ -34,4 +25,20 @@ def deleteView(request):
 def editView(request):
     if request.method == 'POST':
         prodcts = Product.objects.get(product_id=request.POST.get('id'))
-        return render(request,'addproduct.html',{'prodcts':prodcts})
+        return render(request,'addproduct.html',{'prodcts':prodcts,})
+
+def editsaveView(request):
+    if request.method == 'POST':
+        prodId = request.POST['prodId']
+        prodPrice = request.POST['prodPrice']
+        prodStock = request.POST['prodStock']
+        prodName = request.POST['prodName']
+
+        edited= Product.objects.get(product_id = prodId)
+        edited.product_id = prodId
+        edited.price = prodPrice
+        edited.stock = prodStock
+        edited.name = prodName
+        edited.save()
+        products = Product.objects.all()
+    return render(request,'addproduct.html',{'products':products})

@@ -172,7 +172,7 @@
         price = $(".pprice").val();
         stock = $(".pstock").val();
         name = $(".pname").val();
-        $.post("{% url 'app:addproduct_url' %}",
+        $.post("{% url 'app:editsave_url' %}",
         {
             "prodId":product_id,
             "prodPrice":parseFloat(price),
